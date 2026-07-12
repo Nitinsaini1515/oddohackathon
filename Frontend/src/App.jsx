@@ -27,6 +27,26 @@ import AssetDetails from './pages/Assets/AssetDetails';
 import Profile from './pages/Profile/Profile';
 import NotFound from './pages/NotFound/NotFound';
 
+// New Extension Pages
+import AllocationDashboard from './pages/Allocation/AllocationDashboard';
+import AllocationDetails from './pages/Allocation/AllocationDetails';
+import TransfersPage from './pages/Transfers/TransfersPage';
+import ReturnsPage from './pages/Returns/ReturnsPage';
+import BookingsPage from './pages/Bookings/BookingsPage';
+import MaintenancePage from './pages/Maintenance/MaintenancePage';
+import NotificationsPage from './pages/Notifications/NotificationsPage';
+import ActivityPage from './pages/Activity/ActivityPage';
+import AuditPage from './pages/Audit/AuditPage';
+import ReportsPage from './pages/Reports/ReportsPage';
+import AnalyticsPage from './pages/Analytics/AnalyticsPage';
+import TimelinePage from './pages/Timeline/TimelinePage';
+import HealthPage from './pages/Health/HealthPage';
+import RecommendationsPage from './pages/Recommendations/RecommendationsPage';
+import QrPage from './pages/Qr/QrPage';
+import IdleAssetsPage from './pages/IdleAssets/IdleAssetsPage';
+import WarrantyPage from './pages/Warranty/WarrantyPage';
+import CostSavingPage from './pages/CostSaving/CostSavingPage';
+
 // Setup React Query client
 const queryClient = new QueryClient();
 
@@ -80,6 +100,26 @@ export default function App() {
               <Route path="assets/new" element={<AssetRegistration />} />
               <Route path="assets/:id" element={<AssetDetails />} />
               <Route path="profile" element={<Profile />} />
+              
+              {/* Extensions */}
+              <Route path="allocation" element={<AllocationDashboard />} />
+              <Route path="allocation/:id" element={<AllocationDetails />} />
+              <Route path="transfers" element={<TransfersPage />} />
+              <Route path="returns" element={<ReturnsPage />} />
+              <Route path="bookings" element={<BookingsPage />} />
+              <Route path="maintenance" element={<MaintenancePage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="activity" element={<ActivityPage />} />
+              <Route path="audit" element={<AuditPage />} />
+              <Route path="reports" element={<ReportsPage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="timeline" element={<TimelinePage />} />
+              <Route path="health" element={<HealthPage />} />
+              <Route path="recommendations" element={<RecommendationsPage />} />
+              <Route path="qr" element={<QrPage />} />
+              <Route path="idle-assets" element={<IdleAssetsPage />} />
+              <Route path="warranty" element={<WarrantyPage />} />
+              <Route path="cost-saving" element={<CostSavingPage />} />
             </Route>
 
             {/* Fallback 404 */}

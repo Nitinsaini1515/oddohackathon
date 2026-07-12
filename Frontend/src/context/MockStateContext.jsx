@@ -4,7 +4,13 @@ import {
   initialEmployees,
   initialDepartments,
   initialCategories,
-  mockActivities
+  mockActivities,
+  initialAllocations,
+  initialTransfers,
+  initialBookings,
+  initialMaintenance,
+  initialAudits,
+  initialNotifications
 } from '../data/mockData';
 
 const MockStateContext = createContext(undefined);
@@ -34,6 +40,36 @@ export function MockStateProvider({ children }) {
   const [activities, setActivities] = useState(() => {
     const saved = localStorage.getItem('assetflow_activities');
     return saved ? JSON.parse(saved) : mockActivities;
+  });
+
+  const [allocations, setAllocations] = useState(() => {
+    const saved = localStorage.getItem('assetflow_allocations');
+    return saved ? JSON.parse(saved) : initialAllocations;
+  });
+
+  const [transfers, setTransfers] = useState(() => {
+    const saved = localStorage.getItem('assetflow_transfers');
+    return saved ? JSON.parse(saved) : initialTransfers;
+  });
+
+  const [bookings, setBookings] = useState(() => {
+    const saved = localStorage.getItem('assetflow_bookings');
+    return saved ? JSON.parse(saved) : initialBookings;
+  });
+
+  const [maintenance, setMaintenance] = useState(() => {
+    const saved = localStorage.getItem('assetflow_maintenance');
+    return saved ? JSON.parse(saved) : initialMaintenance;
+  });
+
+  const [audits, setAudits] = useState(() => {
+    const saved = localStorage.getItem('assetflow_audits');
+    return saved ? JSON.parse(saved) : initialAudits;
+  });
+
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem('assetflow_notifications');
+    return saved ? JSON.parse(saved) : initialNotifications;
   });
 
   const [currentUser, setCurrentUser] = useState(() => {
@@ -77,6 +113,30 @@ export function MockStateProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('assetflow_user', JSON.stringify(currentUser));
   }, [currentUser]);
+
+  useEffect(() => {
+    localStorage.setItem('assetflow_allocations', JSON.stringify(allocations));
+  }, [allocations]);
+
+  useEffect(() => {
+    localStorage.setItem('assetflow_transfers', JSON.stringify(transfers));
+  }, [transfers]);
+
+  useEffect(() => {
+    localStorage.setItem('assetflow_bookings', JSON.stringify(bookings));
+  }, [bookings]);
+
+  useEffect(() => {
+    localStorage.setItem('assetflow_maintenance', JSON.stringify(maintenance));
+  }, [maintenance]);
+
+  useEffect(() => {
+    localStorage.setItem('assetflow_audits', JSON.stringify(audits));
+  }, [audits]);
+
+  useEffect(() => {
+    localStorage.setItem('assetflow_notifications', JSON.stringify(notifications));
+  }, [notifications]);
 
   // Log user activity helper
   const logActivity = (type, title, desc) => {
@@ -343,6 +403,338 @@ export function MockStateProvider({ children }) {
     logActivity('registration', 'Category Deleted', `Category "${target.name}" removed.`);
   };
 
+  // --- Transactions / Allocation / Bookings / Maintenance Mutations ---
+
+  // Allocations
+  const allocateAsset = (assetId, employeeId, department, expectedReturnDate, notes) => {
+    const asset = assets.find(a => a.id === assetId);
+    const employee = employees.find(e => e.id === employeeId);
+    if (!asset || !employee) return;
+
+    // Update asset status
+    updateAsset({
+      ...asset,
+      status: 'Allocated',
+      currentHolderId: employeeId
+    });
+
+    // Create allocation entry
+    const newAlloc = {
+      id: `alc-${Date.now()}`,
+      assetId,
+      assetName: asset.name,
+      assetTag: asset.assetTag,
+      employeeId,
+      employeeName: employee.name,
+      department,
+      allocatedDate: new Date().toISOString().split('T')[0],
+      expectedReturnDate,
+      actualReturnDate: null,
+      status: 'Active',
+      notes
+    };
+    setAllocations(prev => [newAlloc, ...prev]);
+
+    // Create Notification
+    createNotification('Asset Assigned', 'Asset Allocated', `${asset.name} has been allocated to ${employee.name}.`);
+    logActivity('allocation', 'Asset Allocated', `${asset.name} assigned to ${employee.name}.`);
+  };
+
+  const returnAsset = (assetId, condition, conditionNotes, damageNotes, mockImage) => {
+    const asset = assets.find(a => a.id === assetId);
+    if (!asset) return;
+
+    // Update asset
+    updateAsset({
+      ...asset,
+      status: 'Available',
+      condition,
+      currentHolderId: null
+    });
+
+    // Update active allocation
+    setAllocations(prev => prev.map(al => {
+      if (al.assetId === assetId && al.status === 'Active') {
+        return {
+          ...al,
+          status: 'Returned',
+          actualReturnDate: new Date().toISOString().split('T')[0]
+        };
+      }
+      return al;
+    }));
+
+    // Create Notification
+    createNotification('Asset Returned', 'Asset Returned', `${asset.name} has been returned and marked ${condition}.`);
+    logActivity('status_change', 'Asset Returned', `${asset.name} returned by holder.`);
+  };
+
+  // Transfers
+  const requestTransfer = (assetId, targetEmployeeId, targetDepartment, notes) => {
+    const asset = assets.find(a => a.id === assetId);
+    const targetEmployee = employees.find(e => e.id === targetEmployeeId);
+    if (!asset || !targetEmployee) return;
+
+    const sourceEmployee = employees.find(e => e.id === asset.currentHolderId) || { name: 'Unassigned', id: null };
+
+    const newTransfer = {
+      id: `trf-${Date.now()}`,
+      assetId,
+      assetName: asset.name,
+      assetTag: asset.assetTag,
+      sourceEmployeeId: sourceEmployee.id,
+      sourceEmployeeName: sourceEmployee.name,
+      targetEmployeeId,
+      targetEmployeeName: targetEmployee.name,
+      sourceDepartment: asset.location || 'HQ',
+      targetDepartment,
+      requestDate: new Date().toISOString().split('T')[0],
+      status: 'Pending',
+      notes
+    };
+
+    setTransfers(prev => [newTransfer, ...prev]);
+    logActivity('status_change', 'Transfer Requested', `Transfer request raised for ${asset.name} to ${targetEmployee.name}.`);
+  };
+
+  const approveTransfer = (transferId) => {
+    const transfer = transfers.find(t => t.id === transferId);
+    if (!transfer) return;
+
+    // Update transfer status
+    setTransfers(prev => prev.map(t => t.id === transferId ? { ...t, status: 'Approved' } : t));
+
+    // Allocate asset to new employee
+    allocateAsset(
+      transfer.assetId,
+      transfer.targetEmployeeId,
+      transfer.targetDepartment,
+      new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      `Approved transfer: ${transfer.notes}`
+    );
+    
+    createNotification('Transfer Approved', 'Transfer Approved', `Transfer of ${transfer.assetName} to ${transfer.targetEmployeeName} was approved.`);
+  };
+
+  const rejectTransfer = (transferId) => {
+    setTransfers(prev => prev.map(t => t.id === transferId ? { ...t, status: 'Rejected' } : t));
+    logActivity('status_change', 'Transfer Rejected', `Transfer request rejected.`);
+  };
+
+  // Bookings
+  const createBooking = (resourceId, resourceName, resourceType, date, startTime, endTime) => {
+    // Check overlap validation
+    const hasOverlap = bookings.some(b => 
+      b.resourceId === resourceId && 
+      b.date === date && 
+      b.status === 'Upcoming' &&
+      ((startTime >= b.startTime && startTime < b.endTime) ||
+       (endTime > b.startTime && endTime <= b.endTime) ||
+       (startTime <= b.startTime && endTime >= b.endTime))
+    );
+
+    if (hasOverlap) {
+      throw new Error('Overlap detected! This slot is already booked.');
+    }
+
+    const newBooking = {
+      id: `bkg-${Date.now()}`,
+      resourceId,
+      resourceName,
+      resourceType,
+      userName: currentUser.name,
+      userRole: currentUser.role,
+      date,
+      startTime,
+      endTime,
+      status: 'Upcoming'
+    };
+
+    setBookings(prev => [newBooking, ...prev]);
+    createNotification('Booking Reminder', 'Resource Booked', `${resourceName} booked for ${date} at ${startTime}.`);
+    logActivity('allocation', 'Resource Booked', `${resourceName} reserved by ${currentUser.name}.`);
+    return newBooking;
+  };
+
+  const cancelBooking = (bookingId) => {
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Cancelled' } : b));
+    logActivity('status_change', 'Booking Cancelled', `Resource booking cancelled.`);
+  };
+
+  const rescheduleBooking = (bookingId, date, startTime, endTime) => {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) return;
+
+    // Check overlap with other bookings (excluding current booking)
+    const hasOverlap = bookings.some(b => 
+      b.id !== bookingId &&
+      b.resourceId === booking.resourceId && 
+      b.date === date && 
+      b.status === 'Upcoming' &&
+      ((startTime >= b.startTime && startTime < b.endTime) ||
+       (endTime > b.startTime && endTime <= b.endTime) ||
+       (startTime <= b.startTime && endTime >= b.endTime))
+    );
+
+    if (hasOverlap) {
+      throw new Error('Overlap detected! This slot is already booked.');
+    }
+
+    setBookings(prev => prev.map(b => b.id === bookingId ? {
+      ...b,
+      date,
+      startTime,
+      endTime
+    } : b));
+
+    logActivity('status_change', 'Booking Rescheduled', `${booking.resourceName} rescheduled to ${date} ${startTime}.`);
+  };
+
+  // Maintenance
+  const raiseMaintenance = (assetId, priority, description, image) => {
+    const asset = assets.find(a => a.id === assetId);
+    if (!asset) return;
+
+    // Set asset state to Under Maintenance
+    updateAsset({
+      ...asset,
+      status: 'Under Maintenance'
+    });
+
+    const newReq = {
+      id: `mnt-${Date.now()}`,
+      assetId,
+      assetName: asset.name,
+      assetTag: asset.assetTag,
+      priority,
+      description,
+      requestDate: new Date().toISOString().split('T')[0],
+      status: 'Pending',
+      technician: null,
+      images: image ? [image] : [],
+      timeline: [
+        { date: new Date().toISOString().split('T')[0], status: 'Pending', notes: 'Maintenance ticket raised.' }
+      ]
+    };
+
+    setMaintenance(prev => [newReq, ...prev]);
+    createNotification('Maintenance Reminder', 'Maintenance Raised', `Maintenance ticket raised for ${asset.name}.`);
+    logActivity('maintenance', 'Maintenance Raised', `Maintenance ticket raised for ${asset.name}.`);
+  };
+
+  const updateMaintenanceStatus = (id, status, notes, technician) => {
+    setMaintenance(prev => prev.map(m => {
+      if (m.id === id) {
+        const nextTimeline = [
+          ...(m.timeline || []),
+          { date: new Date().toISOString().split('T')[0], status, notes: notes || `State updated to ${status}` }
+        ];
+
+        // If status is Resolved, mark asset as Available
+        if (status === 'Resolved') {
+          const asset = assets.find(a => a.id === m.assetId);
+          if (asset) {
+            updateAsset({
+              ...asset,
+              status: 'Available'
+            });
+          }
+        }
+
+        return {
+          ...m,
+          status,
+          technician: technician || m.technician,
+          timeline: nextTimeline
+        };
+      }
+      return m;
+    }));
+
+    logActivity('maintenance', 'Maintenance Updated', `Ticket state changed to ${status}.`);
+  };
+
+  // Audits
+  const createAuditCycle = (cycleName, auditorName, startDate, endDate) => {
+    const newCycle = {
+      id: `aud-${Date.now()}`,
+      cycleName,
+      auditorName,
+      startDate,
+      endDate,
+      status: 'In Progress',
+      verifiedAssets: []
+    };
+
+    setAudits(prev => [newCycle, ...prev]);
+    logActivity('status_change', 'Audit Cycle Created', `New audit "${cycleName}" created.`);
+    return newCycle;
+  };
+
+  const verifyAuditAsset = (cycleId, assetId, status, notes) => {
+    setAudits(prev => prev.map(cycle => {
+      if (cycle.id === cycleId) {
+        const existingIdx = cycle.verifiedAssets.findIndex(va => va.assetId === assetId);
+        let updatedList = [...cycle.verifiedAssets];
+        
+        const verificationEntry = {
+          assetId,
+          status, // Verified, Damaged, Missing
+          notes,
+          verifiedDate: new Date().toISOString().split('T')[0]
+        };
+
+        if (existingIdx > -1) {
+          updatedList[existingIdx] = verificationEntry;
+        } else {
+          updatedList.push(verificationEntry);
+        }
+
+        // Auto update asset condition based on audit
+        if (status === 'Damaged') {
+          const asset = assets.find(a => a.id === assetId);
+          if (asset) {
+            updateAsset({ ...asset, condition: 'Poor', status: 'Under Maintenance' });
+          }
+        } else if (status === 'Missing') {
+          const asset = assets.find(a => a.id === assetId);
+          if (asset) {
+            updateAsset({ ...asset, status: 'Archived' });
+          }
+        }
+
+        return {
+          ...cycle,
+          verifiedAssets: updatedList
+        };
+      }
+      return cycle;
+    }));
+
+    logActivity('status_change', 'Audit Logged', `Asset verified as ${status} in audit.`);
+  };
+
+  // Notifications
+  const createNotification = (type, title, message) => {
+    const newNotif = {
+      id: `ntf-${Date.now()}`,
+      type,
+      title,
+      message,
+      timestamp: new Date().toISOString(),
+      read: false
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+  };
+
+  const markNotificationRead = (id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const markAllNotificationsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
   const resetDatabase = () => {
     localStorage.removeItem('assetflow_assets');
     localStorage.removeItem('assetflow_employees');
@@ -350,12 +742,24 @@ export function MockStateProvider({ children }) {
     localStorage.removeItem('assetflow_categories');
     localStorage.removeItem('assetflow_activities');
     localStorage.removeItem('assetflow_user');
+    localStorage.removeItem('assetflow_allocations');
+    localStorage.removeItem('assetflow_transfers');
+    localStorage.removeItem('assetflow_bookings');
+    localStorage.removeItem('assetflow_maintenance');
+    localStorage.removeItem('assetflow_audits');
+    localStorage.removeItem('assetflow_notifications');
     
     setAssets(initialAssets);
     setEmployees(initialEmployees);
     setDepartments(initialDepartments);
     setCategories(initialCategories);
     setActivities(mockActivities);
+    setAllocations(initialAllocations);
+    setTransfers(initialTransfers);
+    setBookings(initialBookings);
+    setMaintenance(initialMaintenance);
+    setAudits(initialAudits);
+    setNotifications(initialNotifications);
     setCurrentUser({
       name: 'David Miller',
       email: 'david.m@assetflow.com',
@@ -380,6 +784,27 @@ export function MockStateProvider({ children }) {
       activities,
       currentUser,
       setCurrentUser,
+      allocations,
+      transfers,
+      bookings,
+      maintenance,
+      audits,
+      notifications,
+      allocateAsset,
+      returnAsset,
+      requestTransfer,
+      approveTransfer,
+      rejectTransfer,
+      createBooking,
+      cancelBooking,
+      rescheduleBooking,
+      raiseMaintenance,
+      updateMaintenanceStatus,
+      createAuditCycle,
+      verifyAuditAsset,
+      createNotification,
+      markNotificationRead,
+      markAllNotificationsRead,
       addAsset,
       updateAsset,
       deleteAsset,

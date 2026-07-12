@@ -12,20 +12,73 @@ import {
   Menu,
   Activity,
   Layers,
-  Settings
+  Settings,
+  Link as LinkIcon,
+  ArrowRightLeft,
+  Undo2,
+  CalendarDays,
+  Wrench,
+  ClipboardList,
+  FileText,
+  LineChart as LineChartIcon,
+  CalendarRange,
+  Heart,
+  Sparkles,
+  QrCode,
+  Flame,
+  ShieldCheck,
+  PiggyBank,
+  Bell
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const location = useLocation();
 
-  const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Departments', path: '/dashboard/departments', icon: FolderTree },
-    { name: 'Employees', path: '/dashboard/employees', icon: Users },
-    { name: 'Categories', path: '/dashboard/categories', icon: Grid },
-    { name: 'Assets', path: '/dashboard/assets', icon: Package },
-    { name: 'Profile Settings', path: '/dashboard/profile', icon: User }
+  const navGroups = [
+    {
+      title: 'Core Management',
+      items: [
+        { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'Departments', path: '/dashboard/departments', icon: FolderTree },
+        { name: 'Employees', path: '/dashboard/employees', icon: Users },
+        { name: 'Categories', path: '/dashboard/categories', icon: Grid },
+        { name: 'Assets', path: '/dashboard/assets', icon: Package }
+      ]
+    },
+    {
+      title: 'Operations',
+      items: [
+        { name: 'Allocations', path: '/dashboard/allocation', icon: LinkIcon },
+        { name: 'Transfers', path: '/dashboard/transfers', icon: ArrowRightLeft },
+        { name: 'Returns', path: '/dashboard/returns', icon: Undo2 },
+        { name: 'Bookings', path: '/dashboard/bookings', icon: CalendarDays },
+        { name: 'Maintenance', path: '/dashboard/maintenance', icon: Wrench },
+        { name: 'Audits', path: '/dashboard/audit', icon: ClipboardList }
+      ]
+    },
+    {
+      title: 'Insights & Utilities',
+      items: [
+        { name: 'Reports', path: '/dashboard/reports', icon: FileText },
+        { name: 'Analytics', path: '/dashboard/analytics', icon: LineChartIcon },
+        { name: 'History Timelines', path: '/dashboard/timeline', icon: CalendarRange },
+        { name: 'Health Ledger', path: '/dashboard/health', icon: Heart },
+        { name: 'Smart Suggestions', path: '/dashboard/recommendations', icon: Sparkles },
+        { name: 'QR Tags', path: '/dashboard/qr', icon: QrCode },
+        { name: 'Idle Buffer', path: '/dashboard/idle-assets', icon: Flame },
+        { name: 'Warranty Expiry', path: '/dashboard/warranty', icon: ShieldCheck },
+        { name: 'Cost Optimization', path: '/dashboard/cost-saving', icon: PiggyBank }
+      ]
+    },
+    {
+      title: 'Preferences',
+      items: [
+        { name: 'Notifications', path: '/dashboard/notifications', icon: Bell },
+        { name: 'Activity Trail', path: '/dashboard/activity', icon: Activity },
+        { name: 'Profile Settings', path: '/dashboard/profile', icon: User }
+      ]
+    }
   ];
 
   return (
@@ -64,42 +117,53 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-6 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
-          
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive: localActive }) =>
-                cn(
-                  'flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all relative group',
-                  isActive
-                    ? 'text-white bg-gradient-to-r from-brand-primary/20 to-brand-purple/5 border border-brand-primary/20'
-                    : 'text-brand-secondaryText hover:text-white hover:bg-brand-cardHover border border-transparent'
-                )
-              }
-            >
-              <item.icon className={cn('w-5 h-5 flex-shrink-0', isActive ? 'text-brand-accent' : 'text-brand-secondaryText group-hover:text-white transition-colors')} />
-              {isOpen && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="truncate"
-                >
-                  {item.name}
-                </motion.span>
-              )}
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-active-indicator"
-                  className="absolute left-0 w-1 h-6 rounded-r bg-brand-primary top-1/2 -translate-y-1/2"
-                />
-              )}
-            </NavLink>
-          );
-        })}
+      <nav className="flex-1 px-3 py-6 flex flex-col gap-5 overflow-y-auto custom-scrollbar">
+        {navGroups.map((group, gIdx) => (
+          <div key={gIdx} className="flex flex-col gap-1.5">
+            {isOpen && (
+              <span className="px-3.5 text-[9px] font-black uppercase tracking-wider text-slate-600 block mb-1">
+                {group.title}
+              </span>
+            )}
+            <div className="flex flex-col gap-1">
+              {group.items.map((item) => {
+                const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
+                
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive: localActive }) =>
+                      cn(
+                        'flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all relative group',
+                        isActive
+                          ? 'text-white bg-gradient-to-r from-brand-primary/20 to-brand-purple/5 border border-brand-primary/20'
+                          : 'text-brand-secondaryText hover:text-white hover:bg-brand-cardHover border border-transparent'
+                      )
+                    }
+                  >
+                    <item.icon className={cn('w-4 h-4 flex-shrink-0', isActive ? 'text-brand-accent' : 'text-brand-secondaryText group-hover:text-white transition-colors')} />
+                    {isOpen && (
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="truncate"
+                      >
+                        {item.name}
+                      </motion.span>
+                    )}
+                    {isActive && (
+                      <motion.div
+                        layoutId="sidebar-active-indicator"
+                        className="absolute left-0 w-1 h-5 rounded-r bg-brand-primary top-1/2 -translate-y-1/2"
+                      />
+                    )}
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Footer / Toggle */}

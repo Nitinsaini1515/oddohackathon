@@ -245,3 +245,212 @@ export const mockChartData = {
     { name: 'Broken', count: 1, fill: '#6B7280' }
   ]
 };
+
+export const initialAllocations = [
+  {
+    id: 'alc-1',
+    assetId: 'ast-101',
+    assetName: 'MacBook Pro 16" M3 Max',
+    assetTag: 'AST-LAP-001',
+    employeeId: 'emp-1',
+    employeeName: 'Sarah Jenkins',
+    department: 'Engineering',
+    allocatedDate: '2024-01-20',
+    expectedReturnDate: '2025-01-20',
+    actualReturnDate: null,
+    status: 'Active',
+    notes: 'Standard engineering deployment.'
+  },
+  {
+    id: 'alc-2',
+    assetId: 'ast-102',
+    assetName: 'ThinkPad P1 Gen 6',
+    assetTag: 'AST-LAP-002',
+    employeeId: 'emp-3',
+    employeeName: 'Alex Rivera',
+    department: 'Engineering',
+    allocatedDate: '2023-09-12',
+    expectedReturnDate: '2024-09-12',
+    actualReturnDate: null,
+    status: 'Active',
+    notes: 'For CAD work.'
+  },
+  {
+    id: 'alc-3',
+    assetId: 'ast-104',
+    assetName: 'iPad Pro 12.9" M2',
+    assetTag: 'AST-MOB-001',
+    employeeId: 'emp-7',
+    employeeName: 'Jessica Taylor',
+    department: 'Operations',
+    allocatedDate: '2023-02-20',
+    expectedReturnDate: '2024-02-20',
+    actualReturnDate: null,
+    status: 'Active',
+    notes: 'Creative and presentations use.'
+  }
+];
+
+export const initialTransfers = [
+  {
+    id: 'trf-1',
+    assetId: 'ast-101',
+    assetName: 'MacBook Pro 16" M3 Max',
+    assetTag: 'AST-LAP-001',
+    sourceEmployeeId: 'emp-1',
+    sourceEmployeeName: 'Sarah Jenkins',
+    targetEmployeeId: 'emp-3',
+    targetEmployeeName: 'Alex Rivera',
+    sourceDepartment: 'Engineering',
+    targetDepartment: 'Engineering',
+    requestDate: '2026-07-10',
+    status: 'Pending',
+    notes: 'Developer needs additional graphics power for Docker testing.'
+  },
+  {
+    id: 'trf-2',
+    assetId: 'ast-105',
+    assetName: 'Dell UltraSharp 38" Curved Monitor',
+    assetTag: 'AST-DIS-001',
+    sourceEmployeeId: 'emp-2',
+    sourceEmployeeName: 'David Miller',
+    targetEmployeeId: 'emp-5',
+    targetEmployeeName: 'Emma Watson',
+    sourceDepartment: 'Information Technology',
+    targetDepartment: 'Human Resources',
+    requestDate: '2026-07-08',
+    status: 'Approved',
+    notes: 'HR presentation desk setup upgrade.'
+  }
+];
+
+export const initialBookings = [
+  {
+    id: 'bkg-1',
+    resourceId: 'res-room-1',
+    resourceName: 'Conference Room Alpha',
+    resourceType: 'Meeting Rooms',
+    userName: 'Sarah Jenkins',
+    userRole: 'Engineering Manager',
+    date: '2026-07-13',
+    startTime: '10:00',
+    endTime: '11:30',
+    status: 'Upcoming'
+  },
+  {
+    id: 'bkg-2',
+    resourceId: 'res-veh-1',
+    resourceName: 'Tesla Model 3 (Fleet A)',
+    resourceType: 'Vehicles',
+    userName: 'David Miller',
+    userRole: 'IT Manager',
+    date: '2026-07-12',
+    startTime: '09:00',
+    endTime: '17:00',
+    status: 'Upcoming'
+  },
+  {
+    id: 'bkg-3',
+    resourceId: 'res-eq-1',
+    resourceName: 'VR Headset (Vision Pro)',
+    resourceType: 'Equipment',
+    userName: 'Alex Rivera',
+    userRole: 'Team Lead',
+    date: '2026-07-10',
+    startTime: '14:00',
+    endTime: '16:00',
+    status: 'Completed'
+  }
+];
+
+export const initialMaintenance = [
+  {
+    id: 'mnt-1',
+    assetId: 'ast-107',
+    assetName: 'Ubiquiti UniFi Dream Machine SE',
+    assetTag: 'AST-SRV-002',
+    priority: 'High',
+    description: 'Firmware upgrade fail caused bootloop. RMA or console recovery in progress.',
+    requestDate: '2026-06-01',
+    status: 'In Progress',
+    technician: 'Marcus Chen',
+    images: ['https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&w=400&q=80'],
+    timeline: [
+      { date: '2026-06-01', status: 'Pending', notes: 'RMA request opened.' },
+      { date: '2026-06-02', status: 'Approved', notes: 'Approved by IT Admin.' },
+      { date: '2026-06-05', status: 'Technician Assigned', notes: 'Assigned to Marcus Chen.' },
+      { date: '2026-06-10', status: 'In Progress', notes: 'Console firmware recovery started.' }
+    ]
+  },
+  {
+    id: 'mnt-2',
+    assetId: 'ast-102',
+    assetName: 'ThinkPad P1 Gen 6',
+    assetTag: 'AST-LAP-002',
+    priority: 'Critical',
+    description: 'Screen is flickering severely after 2 hours of GPU load.',
+    requestDate: '2026-07-11',
+    status: 'Pending',
+    technician: null,
+    images: [],
+    timeline: [
+      { date: '2026-07-11', status: 'Pending', notes: 'Ticket registered by Alex Rivera.' }
+    ]
+  }
+];
+
+export const initialAudits = [
+  {
+    id: 'aud-1',
+    cycleName: 'Q3 Hardware Audit 2026',
+    auditorName: 'David Miller',
+    startDate: '2026-07-01',
+    endDate: '2026-07-15',
+    status: 'In Progress',
+    verifiedAssets: [
+      { assetId: 'ast-101', status: 'Verified', notes: 'Checked in person with Sarah.', verifiedDate: '2026-07-02' },
+      { assetId: 'ast-102', status: 'Verified', notes: 'Verified in office.', verifiedDate: '2026-07-03' },
+      { assetId: 'ast-106', status: 'Damaged', notes: 'Mesh back has a small tear.', verifiedDate: '2026-07-05' }
+    ]
+  },
+  {
+    id: 'aud-2',
+    cycleName: 'Annual Data Center Audit',
+    auditorName: 'Sarah Jenkins',
+    startDate: '2026-05-10',
+    endDate: '2026-05-20',
+    status: 'Completed',
+    verifiedAssets: [
+      { assetId: 'ast-103', status: 'Verified', notes: 'Rack placement correct.', verifiedDate: '2026-05-11' },
+      { assetId: 'ast-107', status: 'Missing', notes: 'Item was not in Virginia datacenter (Sent for repair).', verifiedDate: '2026-05-12' }
+    ]
+  }
+];
+
+export const initialNotifications = [
+  {
+    id: 'ntf-1',
+    type: 'Asset Assigned',
+    title: 'New Asset Assigned',
+    message: 'MacBook Pro 16" M3 Max has been successfully assigned to you.',
+    timestamp: '2026-07-12T09:30:00Z',
+    read: false
+  },
+  {
+    id: 'ntf-2',
+    type: 'Transfer Approved',
+    title: 'Transfer Request Approved',
+    message: 'Your transfer request for Dell UltraSharp 38" Curved Monitor has been approved.',
+    timestamp: '2026-07-11T14:20:00Z',
+    read: true
+  },
+  {
+    id: 'ntf-3',
+    type: 'Booking Reminder',
+    title: 'Upcoming Meeting Room Booking',
+    message: 'Reminder: Conference Room Alpha is booked for tomorrow at 10:00 AM.',
+    timestamp: '2026-07-12T11:00:00Z',
+    read: false
+  }
+];
+

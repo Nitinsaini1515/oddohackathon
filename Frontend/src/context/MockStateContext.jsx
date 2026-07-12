@@ -218,6 +218,12 @@ export function MockStateProvider({ children }) {
     localStorage.setItem('assetflow_notifications', JSON.stringify(notifications));
   }, [notifications]);
 
+  useEffect(() => {
+    if (authUser) {
+      setCurrentUser(authUser);
+    }
+  }, [authUser]);
+
   // Log user activity helper
   const logActivity = (type, title, desc) => {
     const newAct = {

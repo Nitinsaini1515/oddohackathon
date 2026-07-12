@@ -125,7 +125,12 @@ const updateEmployee = asyncHandler(async (req, res) => {
     }
   }
 
-  if (role) user.role = role;
+  if (role) {
+    if (req.user.role !== ROLES.ADMIN) {
+      throw new ApiError(403, 'Only admins can change roles');
+    }
+    user.role = role;
+  }
   if (phone !== undefined) user.phone = phone;
   if (status) user.status = status;
   if (isActive !== undefined) user.isActive = isActive;

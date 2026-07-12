@@ -37,19 +37,14 @@ const generateAuthTokens = async (user) => {
 };
 
 const register = asyncHandler(async (req, res) => {
-  const { name, email, password, department, role } = req.body;
+  const { name, email, password, department } = req.body;
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw new ApiError(409, 'Email is already registered');
   }
 
-  const userCount = await User.countDocuments();
-  const assignedRole = userCount === 0 ? ROLES.ADMIN : (role || ROLES.EMPLOYEE);
-
-  if (role && req.user?.role !== ROLES.ADMIN) {
-    throw new ApiError(403, 'Only admins can assign roles during registration');
-  }
+  const assignedRole = ROLES.EMPLOYEE;
 
   const user = await User.create({
     name,

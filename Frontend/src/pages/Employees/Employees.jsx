@@ -28,6 +28,7 @@ import Badge from '../../components/ui/badges/Badge';
 import Avatar from '../../components/ui/avatars/Avatar';
 import Pagination from '../../components/ui/common/Pagination';
 import EmptyState from '../../components/ui/common/EmptyState';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Employees() {
   const {
@@ -38,6 +39,9 @@ export default function Employees() {
     updateEmployee,
     deleteEmployee
   } = useMockState();
+
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Admin';
 
   // Search, Filter & Layout View states
   const [search, setSearch] = useState('');
@@ -90,7 +94,7 @@ export default function Employees() {
       name: data.name,
       email: data.email,
       department: data.department,
-      role: data.role,
+      role: isAdmin ? data.role : 'Employee',
       status: data.status,
       phone: data.phone,
       joiningDate: data.joiningDate
@@ -106,7 +110,7 @@ export default function Employees() {
       name: data.name,
       email: data.email,
       department: data.department,
-      role: data.role,
+      role: isAdmin ? data.role : activeEmployee.role,
       status: data.status,
       phone: data.phone,
       joiningDate: data.joiningDate
@@ -378,20 +382,28 @@ export default function Employees() {
               required
               {...registerAdd('department', { required: 'Department is required' })}
             />
-            <Select
-              label="Staff Role"
-              placeholder="Select role..."
-              options={[
-                { value: 'Manager', label: 'Manager' },
-                { value: 'Team Lead', label: 'Team Lead' },
-                { value: 'Engineer', label: 'Engineer' },
-                { value: 'Analyst', label: 'Analyst' },
-                { value: 'Admin', label: 'Admin' }
-              ]}
-              error={errorsAdd.role?.message}
-              required
-              {...registerAdd('role', { required: 'Role is required' })}
-            />
+            {isAdmin ? (
+              <Select
+                label="Staff Role"
+                placeholder="Select role..."
+                options={[
+                  { value: 'Employee', label: 'Employee' },
+                  { value: 'Asset Manager', label: 'Asset Manager' },
+                  { value: 'Department Head', label: 'Department Head' },
+                  { value: 'Admin', label: 'Admin' }
+                ]}
+                error={errorsAdd.role?.message}
+                required
+                {...registerAdd('role', { required: 'Role is required' })}
+              />
+            ) : (
+              <div className="flex flex-col gap-1 text-xs text-brand-secondaryText">
+                <span className="font-bold">Staff Role</span>
+                <span className="p-2.5 bg-slate-900/60 border border-brand-border/40 rounded-xl font-bold text-white leading-5">
+                  Employee
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -466,20 +478,28 @@ export default function Employees() {
               required
               {...registerEdit('department', { required: 'Department is required' })}
             />
-            <Select
-              label="Staff Role"
-              placeholder="Select role..."
-              options={[
-                { value: 'Manager', label: 'Manager' },
-                { value: 'Team Lead', label: 'Team Lead' },
-                { value: 'Engineer', label: 'Engineer' },
-                { value: 'Analyst', label: 'Analyst' },
-                { value: 'Admin', label: 'Admin' }
-              ]}
-              error={errorsEdit.role?.message}
-              required
-              {...registerEdit('role', { required: 'Role is required' })}
-            />
+            {isAdmin ? (
+              <Select
+                label="Staff Role"
+                placeholder="Select role..."
+                options={[
+                  { value: 'Employee', label: 'Employee' },
+                  { value: 'Asset Manager', label: 'Asset Manager' },
+                  { value: 'Department Head', label: 'Department Head' },
+                  { value: 'Admin', label: 'Admin' }
+                ]}
+                error={errorsEdit.role?.message}
+                required
+                {...registerEdit('role', { required: 'Role is required' })}
+              />
+            ) : (
+              <div className="flex flex-col gap-1 text-xs text-brand-secondaryText">
+                <span className="font-bold">Staff Role</span>
+                <span className="p-2.5 bg-slate-900/60 border border-brand-border/40 rounded-xl font-bold text-white leading-5 animate-pulse">
+                  {activeEmployee?.role || 'Employee'}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

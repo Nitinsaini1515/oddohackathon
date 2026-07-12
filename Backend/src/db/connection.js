@@ -43,6 +43,28 @@ const connectDB = async () => {
   await attemptConnection();
 };
 
+const seedDefaultAdmin = async () => {
+  const User = require('../models/User.model');
+  const { ROLES } = require('../utils/constants');
+  
+  try {
+    const adminExists = await User.findOne({ role: ROLES.ADMIN });
+    if (!adminExists) {
+      console.log('[MongoDB] Seeding default admin user...');
+      await User.create({
+        name: 'Super Admin',
+        email: 'admin@assetflow.com',
+        password: 'Admin@123',
+        role: ROLES.ADMIN,
+        department: 'IT Operations',
+      });
+      console.log('[MongoDB] Default admin user successfully seeded!');
+    }
+  } catch (error) {
+    console.error('[MongoDB] Seeding default admin failed:', error.message);
+  }
+};
+
 const attemptConnection = async () => {
   if (isShuttingDown) return;
 
@@ -57,6 +79,7 @@ const attemptConnection = async () => {
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
     });
+    await seedDefaultAdmin();
   } catch (error) {
     log('error', `Connection failed: ${error.message}`);
     scheduleRetry();

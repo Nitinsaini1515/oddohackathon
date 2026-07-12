@@ -54,7 +54,7 @@ export default function Departments() {
     return departments.filter(d => 
       d.name.toLowerCase().includes(search.toLowerCase()) ||
       d.code.toLowerCase().includes(search.toLowerCase()) ||
-      d.manager.toLowerCase().includes(search.toLowerCase())
+      (d.manager || '').toLowerCase().includes(search.toLowerCase())
     );
   }, [departments, search]);
 
@@ -65,32 +65,40 @@ export default function Departments() {
     return filteredDepartments.slice(start, start + itemsPerPage);
   }, [filteredDepartments, currentPage]);
 
-  const onAddSubmit = (data) => {
-    addDepartment({
-      name: data.name,
-      code: data.code.toUpperCase(),
-      manager: data.manager,
-      budget: data.budget,
-      description: data.description,
-      status: data.status
-    });
-    setAddOpen(false);
-    resetAdd();
-    toast.success('Department created successfully!');
+  const onAddSubmit = async (data) => {
+    try {
+      await addDepartment({
+        name: data.name,
+        code: data.code.toUpperCase(),
+        manager: data.manager,
+        budget: data.budget,
+        description: data.description,
+        status: data.status
+      });
+      setAddOpen(false);
+      resetAdd();
+      toast.success('Department created successfully!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to create department');
+    }
   };
 
-  const onEditSubmit = (data) => {
-    updateDepartment({
-      id: activeDept.id,
-      name: data.name,
-      code: data.code.toUpperCase(),
-      manager: data.manager,
-      budget: data.budget,
-      description: data.description,
-      status: data.status
-    });
-    setEditOpen(false);
-    toast.success('Department details updated!');
+  const onEditSubmit = async (data) => {
+    try {
+      await updateDepartment({
+        id: activeDept.id,
+        name: data.name,
+        code: data.code.toUpperCase(),
+        manager: data.manager,
+        budget: data.budget,
+        description: data.description,
+        status: data.status
+      });
+      setEditOpen(false);
+      toast.success('Department details updated!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to update department');
+    }
   };
 
   const openEditModal = (dept) => {
@@ -109,10 +117,14 @@ export default function Departments() {
     setDeleteOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
-    deleteDepartment(activeDept.id);
-    setDeleteOpen(false);
-    toast.success('Department removed successfully.');
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteDepartment(activeDept.id);
+      setDeleteOpen(false);
+      toast.success('Department removed successfully.');
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete department');
+    }
   };
 
   return (

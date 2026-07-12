@@ -7,6 +7,14 @@ import TextInput from '../../components/ui/inputs/TextInput';
 import PrimaryButton from '../../components/ui/buttons/PrimaryButton';
 import SecondaryButton from '../../components/ui/buttons/SecondaryButton';
 
+import { authService } from '../../services/auth.service';
+
+const toastStyle = {
+  background: '#111827',
+  color: '#fff',
+  border: '1px solid rgba(255, 255, 255, 0.05)',
+};
+
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1 = Email request, 2 = OTP digits verification
@@ -37,21 +45,22 @@ export default function ForgotPassword() {
     return () => clearInterval(interval);
   }, [step, timer]);
 
-  const handleSendEmail = (data) => {
+  const handleSendEmail = async (data) => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const result = await authService.forgotPassword(data.email);
       setEmailSubmitted(data.email);
       setStep(2);
       setTimer(60);
-      toast.success('Simulation OTP code sent to your inbox!', {
-        style: {
-          background: '#111827',
-          color: '#fff',
-          border: '1px solid rgba(255, 255, 255, 0.05)'
-        }
-      });
-    }, 1000);
+      const msg = result.devOtp
+        ? `OTP sent! Dev code: ${result.devOtp}`
+        : 'OTP sent to your email address';
+      toast.success(msg, { style: toastStyle });
+    } catch (error) {
+      toast.error(error.message || 'Failed to send OTP', { style: toastStyle });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOtpChange = (index, value) => {
@@ -73,7 +82,7 @@ export default function ForgotPassword() {
     }
   };
 
-  const handleVerifyOtp = (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     const code = otpValues.join('');
     if (code.length < 4) {
@@ -82,26 +91,29 @@ export default function ForgotPassword() {
     }
 
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await authService.verifyOtp(emailSubmitted, code);
+      toast.success('Identity verified! You can now reset your password.', { style: toastStyle });
+      navigate('/login');
+    } catch (error) {
+      toast.error(error.message || 'Invalid OTP', { style: toastStyle });
+    } finally {
       setLoading(false);
-      toast.success('Identity verified! Redirecting to setup portal...', {
-        style: {
-          background: '#111827',
-          color: '#fff',
-          border: '1px solid rgba(255, 255, 255, 0.05)'
-        }
-      });
-      // Simulate verification -> Dashboard bypass
-      navigate('/dashboard');
-    }, 1500);
+    }
   };
 
-  const handleResendCode = () => {
-    if (timer > 0) return;
+  const handleResendCode = async () => {
+    if (timer > 0 || !emailSubmitted) return;
     setTimer(60);
     setOtpValues(['', '', '', '']);
     otpInputsRef[0].current.focus();
-    toast.success('New simulated OTP dispatched!');
+    try {
+      const result = await authService.forgotPassword(emailSubmitted);
+      const msg = result.devOtp ? `New OTP: ${result.devOtp}` : 'New OTP dispatched!';
+      toast.success(msg, { style: toastStyle });
+    } catch (error) {
+      toast.error(error.message || 'Failed to resend OTP', { style: toastStyle });
+    }
   };
 
   return (

@@ -1,48 +1,63 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { UserPlus, Mail, Lock, User, Briefcase } from 'lucide-react';
+import { UserPlus, Mail, Lock, User } from 'lucide-react';
 import TextInput from '../../components/ui/inputs/TextInput';
 import Select from '../../components/ui/inputs/Select';
 import Checkbox from '../../components/ui/inputs/Checkbox';
 import PrimaryButton from '../../components/ui/buttons/PrimaryButton';
+import { useAuth } from '../../context/AuthContext';
+
+const toastStyle = {
+  background: '#111827',
+  color: '#fff',
+  border: '1px solid rgba(255, 255, 255, 0.05)',
+};
 
 export default function Register() {
   const navigate = useNavigate();
+  const { register: registerUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const {
     register,
     handleSubmit,
     watch,
-    formState: { errors }
+    formState: { errors },
   } = useForm();
 
   const password = watch('password');
 
-  const onSubmit = (data) => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast.success('Enterprise Account Registered successfully!', {
-        style: {
-          background: '#111827',
-          color: '#fff',
-          border: '1px solid rgba(255, 255, 255, 0.05)'
-        }
-      });
-      navigate('/dashboard');
-    }, 1200);
-  };
+  if (!authLoading && isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const departmentOptions = [
     { value: 'Engineering', label: 'Engineering' },
     { value: 'Information Technology', label: 'Information Technology' },
     { value: 'Human Resources', label: 'Human Resources' },
     { value: 'Finance & Accounts', label: 'Finance & Accounts' },
-    { value: 'Operations', label: 'Operations' }
+    { value: 'Operations', label: 'Operations' },
   ];
+
+  const onSubmit = async (data) => {
+    setLoading(true);
+    try {
+      const user = await registerUser({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        department: data.department,
+      });
+      toast.success(`Welcome, ${user.name}! Account created successfully.`, { style: toastStyle });
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error(error.message || 'Registration failed', { style: toastStyle });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5 select-none">
@@ -52,7 +67,6 @@ export default function Register() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3.5">
-        {/* Full Name */}
         <TextInput
           label="Full Name"
           placeholder="e.g. David Miller"
@@ -62,7 +76,6 @@ export default function Register() {
           {...register('name', { required: 'Name is required' })}
         />
 
-        {/* Email */}
         <TextInput
           label="Email Address"
           type="email"
@@ -74,12 +87,11 @@ export default function Register() {
             required: 'Email is required',
             pattern: {
               value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: 'Invalid email address'
-            }
+              message: 'Invalid email address',
+            },
           })}
         />
 
-        {/* Department */}
         <Select
           label="Department"
           placeholder="Select department..."
@@ -89,7 +101,6 @@ export default function Register() {
           {...register('department', { required: 'Department selection is required' })}
         />
 
-        {/* Password */}
         <TextInput
           label="Password"
           type="password"
@@ -99,14 +110,10 @@ export default function Register() {
           required
           {...register('password', {
             required: 'Password is required',
-            minLength: {
-              value: 6,
-              message: 'Password must be at least 6 characters'
-            }
+            minLength: { value: 6, message: 'Password must be at least 6 characters' },
           })}
         />
 
-        {/* Confirm Password */}
         <TextInput
           label="Confirm Password"
           type="password"
@@ -116,11 +123,10 @@ export default function Register() {
           required
           {...register('confirmPassword', {
             required: 'Please confirm your password',
-            validate: (value) => value === password || 'Passwords do not match'
+            validate: (value) => value === password || 'Passwords do not match',
           })}
         />
 
-        {/* Terms */}
         <Checkbox
           label="I agree to the Odoo Hackathon terms & policies."
           className="mt-1"
@@ -128,23 +134,14 @@ export default function Register() {
           error={errors.terms?.message}
         />
 
-        {/* Submit */}
-        <PrimaryButton
-          type="submit"
-          loading={loading}
-          className="w-full mt-4"
-          icon={UserPlus}
-        >
+        <PrimaryButton type="submit" loading={loading} className="w-full mt-4" icon={UserPlus}>
           Create Account
         </PrimaryButton>
       </form>
 
       <div className="text-center text-xs text-brand-secondaryText mt-1">
         Already have an account?{' '}
-        <Link
-          to="/login"
-          className="font-bold text-brand-primary hover:text-brand-purple transition-colors"
-        >
+        <Link to="/login" className="font-bold text-brand-primary hover:text-brand-purple transition-colors">
           Sign In
         </Link>
       </div>

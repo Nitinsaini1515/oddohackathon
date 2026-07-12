@@ -14,11 +14,13 @@ import {
   FolderTree
 } from 'lucide-react';
 import { useMockState } from '../../../context/MockStateContext';
+import { useAuth } from '../../../context/AuthContext';
 import Avatar from '../avatars/Avatar';
 import { cn } from '../../../utils/cn';
 
 export default function Navbar({ onMenuToggle, sidebarOpen }) {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const { currentUser, resetDatabase, assets, employees, departments } = useMockState();
   
   // Dropdown states
@@ -57,8 +59,8 @@ export default function Navbar({ onMenuToggle, sidebarOpen }) {
     };
   }, [searchQuery, assets, employees, departments]);
 
-  const handleLogout = () => {
-    // Navigate to Login page
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 

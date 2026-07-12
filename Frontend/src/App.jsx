@@ -5,7 +5,9 @@ import { Toaster } from 'react-hot-toast';
 import { Helmet } from 'react-helmet';
 
 // Context
+import { AuthProvider } from './context/AuthContext';
 import { MockStateProvider } from './context/MockStateContext';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -66,8 +68,9 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <MockStateProvider>
-        <BrowserRouter>
+      <AuthProvider>
+        <MockStateProvider>
+          <BrowserRouter>
           {/* SEO Helmet Defaults */}
           <Helmet>
             <title>AssetFlow - Enterprise Asset & Resource Management System</title>
@@ -104,7 +107,14 @@ export default function App() {
             </Route>
 
             {/* Dashboard Layout */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<Dashboard />} />
               <Route path="departments" element={<Departments />} />
               <Route path="employees" element={<Employees />} />
@@ -150,7 +160,8 @@ export default function App() {
           </Routes>
           <InnovationLauncher />
         </BrowserRouter>
-      </MockStateProvider>
+        </MockStateProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

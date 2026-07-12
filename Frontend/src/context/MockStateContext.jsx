@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   initialAssets,
   initialEmployees,
@@ -12,10 +12,29 @@ import {
   initialAudits,
   initialNotifications
 } from '../data/mockData';
+import { dataService } from '../services/data.service';
+import { getStoredToken } from '../services/auth.service';
+import { useAuth } from './AuthContext';
+import {
+  mapDepartment,
+  mapEmployee,
+  mapCategory,
+  mapAsset,
+  mapAllocation,
+  mapTransfer,
+  mapBooking,
+  mapMaintenance,
+  mapAudit,
+  mapNotification,
+  mapUser,
+} from '../utils/apiMappers';
 
 const MockStateContext = createContext(undefined);
 
 export function MockStateProvider({ children }) {
+  const { user: authUser } = useAuth();
+  const useApi = () => !!getStoredToken();
+
   // Load or seed state
   const [assets, setAssets] = useState(() => {
     const saved = localStorage.getItem('assetflow_assets');
@@ -89,6 +108,67 @@ export function MockStateProvider({ children }) {
     };
   });
 
+  const [isLoadingData, setIsLoadingData] = useState(false);
+
+  const loadFromApi = useCallback(async () => {
+    if (!getStoredToken()) return;
+    setIsLoadingData(true);
+    try {
+      const [
+        depts, emps, cats, assetsList, allocs, transfersList,
+        bookingsList, maint, auditsList, notifRes, activities,
+      ] = await Promise.all([
+        dataService.getDepartments(),
+        dataService.getEmployees(),
+        dataService.getCategories(),
+        dataService.getAssets(),
+        dataService.getAllocations(),
+        dataService.getTransfers(),
+        dataService.getBookings(),
+        dataService.getMaintenance(),
+        dataService.getAudits(),
+        dataService.getNotifications(),
+        dataService.getDashboardActivity(),
+      ]);
+
+      setDepartments(depts.map(mapDepartment));
+      setEmployees(emps.map(mapEmployee));
+      setCategories(cats.map(mapCategory));
+      setAssets(assetsList.map(mapAsset));
+      setAllocations(allocs.map(mapAllocation));
+      setTransfers(transfersList.map(mapTransfer));
+      setBookings(bookingsList.map(mapBooking));
+      setMaintenance(maint.map(mapMaintenance));
+      setAudits(auditsList.map(mapAudit));
+      setNotifications((notifRes.notifications || []).map(mapNotification));
+      setActivities(activities.map((a, i) => ({
+        id: `act-${i}`,
+        type: a.type || 'status_change',
+        title: a.title,
+        desc: a.notes || a.title,
+        time: a.date ? new Date(a.date).toLocaleDateString() : 'Recently',
+        user: a.user || 'System',
+      })));
+    } catch (error) {
+      console.error('Failed to load data from API:', error.message);
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authUser) {
+      setCurrentUser(mapUser(authUser));
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    loadFromApi();
+    const onAuthChange = () => loadFromApi();
+    window.addEventListener('assetflow:auth-change', onAuthChange);
+    return () => window.removeEventListener('assetflow:auth-change', onAuthChange);
+  }, [loadFromApi]);
+
   // Sync to local storage when state changes
   useEffect(() => {
     localStorage.setItem('assetflow_assets', JSON.stringify(assets));
@@ -154,7 +234,26 @@ export function MockStateProvider({ children }) {
   // --- CRUD Operations ---
 
   // Assets
-  const addAsset = (asset) => {
+  const addAsset = async (asset) => {
+    if (useApi()) {
+      const cat = categories.find((c) => c.name === asset.category || c.id === asset.categoryId);
+      const res = await dataService.createAsset({
+        name: asset.name,
+        categoryId: cat?.id || asset.categoryId,
+        serialNumber: asset.serialNumber,
+        location: asset.location,
+        condition: asset.condition || 'New',
+        description: asset.description,
+        purchaseDate: asset.purchaseDate,
+        purchaseCost: asset.purchaseCost,
+        specifications: asset.specifications,
+        image: asset.image,
+      });
+      const mapped = mapAsset(res.data.data.asset);
+      setAssets((prev) => [mapped, ...prev]);
+      logActivity('registration', 'New Asset Registered', `${mapped.name} added to database.`);
+      return mapped;
+    }
     const newAsset = {
       ...asset,
       id: `ast-${Date.now()}`,
@@ -277,7 +376,14 @@ export function MockStateProvider({ children }) {
   };
 
   // Departments
-  const addDepartment = (dept) => {
+  const addDepartment = async (dept) => {
+    if (useApi()) {
+      const res = await dataService.createDepartment(dept);
+      const mapped = mapDepartment(res.data.data.department);
+      setDepartments((prev) => [...prev, mapped]);
+      logActivity('employee', 'Department Created', `New department "${mapped.name}" registered.`);
+      return mapped;
+    }
     const newDept = {
       ...dept,
       id: `dept-${Date.now()}`,
@@ -289,12 +395,26 @@ export function MockStateProvider({ children }) {
     return newDept;
   };
 
-  const updateDepartment = (updated) => {
+  const updateDepartment = async (updated) => {
+    if (useApi()) {
+      await dataService.updateDepartment(updated.id, updated);
+      const res = await dataService.getDepartments();
+      setDepartments(res.map(mapDepartment));
+      logActivity('employee', 'Department Updated', `Department "${updated.name}" updated.`);
+      return;
+    }
     setDepartments(prev => prev.map(d => d.id === updated.id ? { ...d, ...updated } : d));
     logActivity('employee', 'Department Updated', `Department "${updated.name}" updated.`);
   };
 
-  const deleteDepartment = (id) => {
+  const deleteDepartment = async (id) => {
+    if (useApi()) {
+      const target = departments.find((d) => d.id === id);
+      await dataService.deleteDepartment(id);
+      setDepartments((prev) => prev.filter((d) => d.id !== id));
+      if (target) logActivity('employee', 'Department Deleted', `Department "${target.name}" removed.`);
+      return;
+    }
     const target = departments.find(d => d.id === id);
     if (!target) return;
     setDepartments(prev => prev.filter(d => d.id !== id));
@@ -302,7 +422,24 @@ export function MockStateProvider({ children }) {
   };
 
   // Employees
-  const addEmployee = (emp) => {
+  const addEmployee = async (emp) => {
+    if (useApi()) {
+      const dept = departments.find((d) => d.name === emp.department);
+      const res = await dataService.createEmployee({
+        name: emp.name,
+        email: emp.email,
+        password: emp.password || 'password123',
+        departmentId: dept?.id || emp.departmentId,
+        role: emp.role || 'Employee',
+        phone: emp.phone,
+        status: emp.status || 'Active',
+        joiningDate: emp.joiningDate,
+      });
+      const mapped = mapEmployee(res.data.data.employee);
+      setEmployees((prev) => [mapped, ...prev]);
+      logActivity('employee', 'Employee Hired', `${mapped.name} registered as ${mapped.role}.`);
+      return mapped;
+    }
     const newEmp = {
       ...emp,
       id: `emp-${Date.now()}`,
@@ -324,7 +461,22 @@ export function MockStateProvider({ children }) {
     return newEmp;
   };
 
-  const updateEmployee = (updated) => {
+  const updateEmployee = async (updated) => {
+    if (useApi()) {
+      const dept = departments.find((d) => d.name === updated.department);
+      await dataService.updateEmployee(updated.id, {
+        name: updated.name,
+        email: updated.email,
+        departmentId: dept?.id,
+        role: updated.role,
+        phone: updated.phone,
+        status: updated.status,
+      });
+      const res = await dataService.getEmployees();
+      setEmployees(res.map(mapEmployee));
+      logActivity('employee', 'Employee Profile Updated', `${updated.name}'s records updated.`);
+      return;
+    }
     const original = employees.find(e => e.id === updated.id);
     setEmployees(prev => prev.map(e => e.id === updated.id ? { ...e, ...updated } : e));
 
@@ -344,7 +496,14 @@ export function MockStateProvider({ children }) {
     logActivity('employee', 'Employee Profile Updated', `${updated.name}'s records updated.`);
   };
 
-  const deleteEmployee = (id) => {
+  const deleteEmployee = async (id) => {
+    if (useApi()) {
+      const target = employees.find((e) => e.id === id);
+      await dataService.deleteEmployee(id);
+      setEmployees((prev) => prev.filter((e) => e.id !== id));
+      if (target) logActivity('employee', 'Employee Removed', `${target.name} database profile deleted.`);
+      return;
+    }
     const target = employees.find(e => e.id === id);
     if (!target) return;
     setEmployees(prev => prev.filter(e => e.id !== id));
@@ -379,7 +538,20 @@ export function MockStateProvider({ children }) {
   };
 
   // Categories
-  const addCategory = (cat) => {
+  const addCategory = async (cat) => {
+    if (useApi()) {
+      const res = await dataService.createCategory({
+        name: cat.name,
+        code: cat.code,
+        icon: cat.icon || 'Package',
+        description: cat.description,
+        status: cat.status || 'Active',
+      });
+      const mapped = mapCategory(res.data.data.category);
+      setCategories((prev) => [...prev, mapped]);
+      logActivity('registration', 'Category Added', `New Asset category "${mapped.name}" defined.`);
+      return mapped;
+    }
     const newCat = {
       ...cat,
       id: `cat-${Date.now()}`,
@@ -818,7 +990,9 @@ export function MockStateProvider({ children }) {
       updateCategory,
       deleteCategory,
       resetDatabase,
-      logActivity
+      logActivity,
+      loadFromApi,
+      isLoadingData,
     }}>
       {children}
     </MockStateContext.Provider>

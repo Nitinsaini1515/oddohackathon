@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #060816;
+  --color-brand-bgSecondary: #0F172A;
+  --color-brand-card: #111827;
+  --color-brand-cardHover: #1E293B;
+  --color-brand-primary: #4F46E5;
+  --color-brand-darkBlue: #2563EB;
+  --color-brand-purple: #7C3AED;
+  --color-brand-accent: #A855F7;
+  --color-brand-success: #22C55E;
+  --color-brand-warning: #F59E0B;
+  --color-brand-danger: #EF4444;
+  --color-brand-secondaryText: #94A3B8;
+  --color-brand-border: rgba(255,255,255,0.05);
+
+  --font-sans: 'Inter', 'system-ui', 'sans-serif';
+
+  --shadow-premium: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-glow-primary: 0 0 15px rgba(79, 70, 229, 0.35);
+  --shadow-glow-purple: 0 0 15px rgba(124, 58, 237, 0.35);
+  --shadow-glow-success: 0 0 15px rgba(34, 197, 94, 0.25);
+}
+
+@layer base {
+  body {
+    background-color: #060816;
+    color: #ffffff;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.05) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  input, select, textarea {
+    outline: none;
+  }
+}
+
+/* Custom premium thin scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060816;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Glassmorphism utility card */
+@utility glass-panel {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@utility glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(79, 70, 229, 0.3);
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.1);
+  transform: translateY(-2px);
+}

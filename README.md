@@ -1,4 +1,4 @@
-# 🚀 AssetFlow - Enterprise Asset & Resource Management System
+ # 🚀 AssetFlow - Enterprise Asset & Resource Management System
 
 > **An ERP-based Asset & Resource Management System built for the Odoo Hackathon.**
 
@@ -20,6 +20,43 @@ Organizations often struggle to manage assets such as laptops, furniture, vehicl
 - Improve operational efficiency
 
 ---
+# 🛠 Tech Stack
+
+## Frontend
+
+- ⚛️ React.js
+- 🎨 Tailwind CSS
+- 📦 React Router
+- 📊 Chart.js / Recharts (Dashboard)
+- 📅 Calendar Components
+- 🔔 Toast Notifications
+
+---
+
+## Backend
+
+- 🟢 Node.js
+- 🚀 Express.js
+- 🍃 MongoDB
+- 📄 Mongoose ODM
+- 🔐 JWT Authentication
+- 🔒 bcrypt.js
+- ☁️ Multer (File Uploads)
+
+---
+
+## Database
+
+- MongoDB
+
+---
+
+## Development Tools
+
+- Git & GitHub
+- VS Code
+- Postman
+- npm
 
 # ✨ Key Features
 

@@ -32,8 +32,12 @@ import {
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 
+import { useAuth } from '../../../context/AuthContext';
+
 export default function Sidebar({ isOpen, setIsOpen }) {
   const location = useLocation();
+  const { user } = useAuth();
+  const role = user?.role || 'Employee';
 
   const navGroups = [
     {
@@ -81,6 +85,37 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     }
   ];
 
+  const isItemVisible = (itemName, userRole) => {
+    if (userRole === 'Admin') return true;
+    
+    const managerAllowed = [
+      'Dashboard', 'Categories', 'Assets', 'Allocations', 'Transfers', 'Returns',
+      'Maintenance', 'Reports', 'Analytics', 'History Timelines', 'Health Ledger',
+      'Smart Suggestions', 'QR Tags', 'Idle Buffer', 'Warranty Expiry', 'Cost Optimization',
+      'Notifications', 'Profile Settings'
+    ];
+    
+    const headAllowed = [
+      'Dashboard', 'Assets', 'Allocations', 'Transfers', 'Bookings', 
+      'Notifications', 'Profile Settings'
+    ];
+    
+    const employeeAllowed = [
+      'Dashboard', 'Assets', 'Bookings', 'Maintenance', 'Notifications', 'Profile Settings'
+    ];
+    
+    if (userRole === 'Asset Manager') return managerAllowed.includes(itemName);
+    if (userRole === 'Department Head') return headAllowed.includes(itemName);
+    if (userRole === 'Employee') return employeeAllowed.includes(itemName);
+    
+    return false;
+  };
+
+  const filteredGroups = navGroups.map(group => ({
+    ...group,
+    items: group.items.filter(item => isItemVisible(item.name, role))
+  })).filter(group => group.items.length > 0);
+
   return (
     <motion.div
       animate={{ width: isOpen ? 260 : 76 }}
@@ -118,7 +153,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-6 flex flex-col gap-5 overflow-y-auto custom-scrollbar">
-        {navGroups.map((group, gIdx) => (
+        {filteredGroups.map((group, gIdx) => (
           <div key={gIdx} className="flex flex-col gap-1.5">
             {isOpen && (
               <span className="px-3.5 text-[9px] font-black uppercase tracking-wider text-slate-600 block mb-1">

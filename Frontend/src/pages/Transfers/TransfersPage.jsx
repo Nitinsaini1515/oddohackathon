@@ -190,7 +190,7 @@ export default function TransfersPage() {
             label="Transfer Notes / Business Case"
             placeholder="Provide context on why this item is transferring..."
             value={transferNotes}
-            onChange={(e) => setAllocationNotes ? setAllocationNotes(e.target.value) : setTransferNotes(e.target.value)}
+            onChange={(e) => setTransferNotes(e.target.value)}
             rows={4}
             required
           />

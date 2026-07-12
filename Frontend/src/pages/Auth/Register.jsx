@@ -49,6 +49,7 @@ export default function Register() {
         email: data.email,
         password: data.password,
         department: data.department,
+        role: 'Employee',
       });
       toast.success(`Welcome, ${user.name}! Account created successfully.`, { style: toastStyle });
       navigate('/dashboard');

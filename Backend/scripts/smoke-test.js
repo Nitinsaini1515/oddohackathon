@@ -137,6 +137,6 @@ const run = async () => {
 };
 
 run().catch((err) => {
-  console.error('\n❌ Smoke test failed:', err.message);
+  console.error('\n❌ Smoke test failed:', err);
   process.exit(1);
 });

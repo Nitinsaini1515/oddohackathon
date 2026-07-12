@@ -7,7 +7,7 @@ import { Helmet } from 'react-helmet';
 // Context
 import { AuthProvider } from './context/AuthContext';
 import { MockStateProvider } from './context/MockStateContext';
-import ProtectedRoute from './components/auth/ProtectedRoute';
+import ProtectedRoute, { RoleProtectedRoute } from './components/auth/ProtectedRoute';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -20,6 +20,11 @@ import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import Dashboard from './pages/Dashboard/Dashboard';
+import AdminDashboard from './pages/Dashboard/AdminDashboard';
+import ManagerDashboard from './pages/Dashboard/ManagerDashboard';
+import HeadDashboard from './pages/Dashboard/HeadDashboard';
+import EmployeeDashboard from './pages/Dashboard/EmployeeDashboard';
+import DashboardRouter from './pages/Dashboard/DashboardRouter';
 import Departments from './pages/Departments/Departments';
 import Employees from './pages/Employees/Employees';
 import Categories from './pages/Categories/Categories';
@@ -115,12 +120,16 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Dashboard />} />
-              <Route path="departments" element={<Departments />} />
-              <Route path="employees" element={<Employees />} />
-              <Route path="categories" element={<Categories />} />
+              <Route index element={<DashboardRouter />} />
+              <Route path="admin" element={<RoleProtectedRoute allowedRoles={['Admin']}><AdminDashboard /></RoleProtectedRoute>} />
+              <Route path="manager" element={<RoleProtectedRoute allowedRoles={['Asset Manager']}><ManagerDashboard /></RoleProtectedRoute>} />
+              <Route path="head" element={<RoleProtectedRoute allowedRoles={['Department Head']}><HeadDashboard /></RoleProtectedRoute>} />
+              <Route path="employee" element={<RoleProtectedRoute allowedRoles={['Employee']}><EmployeeDashboard /></RoleProtectedRoute>} />
+              <Route path="departments" element={<RoleProtectedRoute allowedRoles={['Admin']}><Departments /></RoleProtectedRoute>} />
+              <Route path="employees" element={<RoleProtectedRoute allowedRoles={['Admin']}><Employees /></RoleProtectedRoute>} />
+              <Route path="categories" element={<RoleProtectedRoute allowedRoles={['Admin', 'Asset Manager']}><Categories /></RoleProtectedRoute>} />
               <Route path="assets" element={<AssetList />} />
-              <Route path="assets/new" element={<AssetRegistration />} />
+              <Route path="assets/new" element={<RoleProtectedRoute allowedRoles={['Admin', 'Asset Manager']}><AssetRegistration /></RoleProtectedRoute>} />
               <Route path="assets/:id" element={<AssetDetails />} />
               <Route path="profile" element={<Profile />} />
               

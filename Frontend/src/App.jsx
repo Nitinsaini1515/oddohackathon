@@ -41,11 +41,24 @@ import ReportsPage from './pages/Reports/ReportsPage';
 import AnalyticsPage from './pages/Analytics/AnalyticsPage';
 import TimelinePage from './pages/Timeline/TimelinePage';
 import HealthPage from './pages/Health/HealthPage';
-import RecommendationsPage from './pages/Recommendations/RecommendationsPage';
 import QrPage from './pages/Qr/QrPage';
-import IdleAssetsPage from './pages/IdleAssets/IdleAssetsPage';
-import WarrantyPage from './pages/Warranty/WarrantyPage';
-import CostSavingPage from './pages/CostSaving/CostSavingPage';
+
+// Version 4 Innovation Pages
+import InnovationHub from './pages/Innovation/InnovationHub';
+import HealthCenter from './pages/Innovation/HealthCenter';
+import AssetCare from './pages/Innovation/AssetCare';
+import DigitalTwin from './pages/Innovation/DigitalTwin';
+import RecommendationsV4 from './pages/Innovation/RecommendationsV4';
+import IdleAssetsV4 from './pages/Innovation/IdleAssetsV4';
+import CostSavingV4 from './pages/Innovation/CostSavingV4';
+import Sustainability from './pages/Innovation/Sustainability';
+import WarrantyV4 from './pages/Innovation/WarrantyV4';
+import AssetPassport from './pages/Innovation/AssetPassport';
+import ExecutiveDashboard from './pages/Innovation/ExecutiveDashboard';
+import FutureInsights from './pages/Innovation/FutureInsights';
+
+// Global V4 launcher widget
+import { InnovationLauncher } from './components/ui/innovation/InnovationComponents';
 
 // Setup React Query client
 const queryClient = new QueryClient();
@@ -115,16 +128,27 @@ export default function App() {
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="timeline" element={<TimelinePage />} />
               <Route path="health" element={<HealthPage />} />
-              <Route path="recommendations" element={<RecommendationsPage />} />
+              <Route path="recommendations" element={<RecommendationsV4 />} />
               <Route path="qr" element={<QrPage />} />
-              <Route path="idle-assets" element={<IdleAssetsPage />} />
-              <Route path="warranty" element={<WarrantyPage />} />
-              <Route path="cost-saving" element={<CostSavingPage />} />
+              <Route path="idle-assets" element={<IdleAssetsV4 />} />
+              <Route path="warranty" element={<WarrantyV4 />} />
+              <Route path="cost-saving" element={<CostSavingV4 />} />
+
+              {/* Version 4 Innovation Routes */}
+              <Route path="innovation" element={<InnovationHub />} />
+              <Route path="health-center" element={<HealthCenter />} />
+              <Route path="asset-care" element={<AssetCare />} />
+              <Route path="digital-twin" element={<DigitalTwin />} />
+              <Route path="sustainability" element={<Sustainability />} />
+              <Route path="asset-passport" element={<AssetPassport />} />
+              <Route path="executive-dashboard" element={<ExecutiveDashboard />} />
+              <Route path="future-insights" element={<FutureInsights />} />
             </Route>
 
             {/* Fallback 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <InnovationLauncher />
         </BrowserRouter>
       </MockStateProvider>
     </QueryClientProvider>
